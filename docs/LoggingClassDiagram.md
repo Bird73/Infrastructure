@@ -1,90 +1,109 @@
-# Logging — 類別與關係圖
+# Logging 模組類別與關係圖
 
-下圖使用 Mermaid 類別圖（classDiagram）描述目前 Logging 模組中介面（interface）與實作（class）之間的關係與依賴。
+以下為 Birdsoft.Infrastructure.Logging 中主要介面與實作類別的關係圖（Mermaid classDiagram）。
+
+註：為避免 Markdown 將 `<T>` 當成 HTML，泛型使用 `_T_` 表示（例如 `IAppLogger_T_`）。
 
 ```mermaid
 classDiagram
-    class LogEntry {
-      +DateTimeOffset Timestamp
-      +LogLevel Level
-      +string Category
-      +string Message
-      +Exception? Exception
-      +IReadOnlyDictionary<string, object?> Properties
-    }
 
-    class LogLevel {
-    }
+%% Enumerations / Models
+class LogLevel {
+  <<enumeration>>
+  +Trace
+  +Debug
+  +Information
+  +Warning
+  +Error
+  +Critical
+}
 
-    interface IAppLogger {
-      +bool IsEnabled(LogLevel)
-      +void Log(LogLevel, Exception?, string, params object?[])
-    }
+class LogEntry {
+  +DateTimeOffset Timestamp
+  +LogLevel Level
+  +string Category
+  +string Message
+  +Exception Exception
+  +IReadOnlyDictionary~string, object~ Properties
+}
 
-    interface IAppLogger~T~ {
-    }
+%% Interfaces
+class IAppLogger {
+  <<interface>>
+}
+class IAppLogger_T_ {
+  <<interface>>
+}
+class ILogSink {
+  <<interface>>
+}
+class ILogStore {
+  <<interface>>
+}
+class ILogMaintenance {
+  <<interface>>
+}
+class ILogFilePathProvider {
+  <<interface>>
+}
 
-    interface ILogSink {
-      +Task WriteAsync(LogEntry, CancellationToken)
-    }
+%% Implementations
+class SerilogAppLogger_T_ {
+  +IsEnabled()
+  +Log(...)
+}
+class DefaultLogMaintenance {
+  +RetentionDays
+  +ExecuteAsync(...)
+}
+class JsonFileLogStore {
+  +WriteAsync(...)
+  +GetLogDatesAsync()
+  +GetLogsAsync()
+  +DeleteLogsAsync()
+}
+class DefaultLogFilePathProvider {
+  +GetLogFilePath(DateOnly date)
+}
+class SqliteLogStore {
+  +WriteAsync(...)
+  +GetLogDatesAsync()
+  +GetLogsAsync()
+  +DeleteLogsAsync()
+}
 
-    interface ILogStore {
-      +Task<IReadOnlyList~DateOnly~> GetLogDatesAsync()
-      +IAsyncEnumerable~LogEntry~ GetLogsAsync(DateOnly)
-      +Task DeleteLogsAsync(DateOnly)
-    }
+%% DI / Extensions
+class LoggingServiceCollectionExtensions
+class JsonLoggingServiceCollectionExtensions
+class SqliteLoggingServiceCollectionExtensions
 
-    interface ILogMaintenance {
-      +int? RetentionDays
-      +IReadOnlyCollection~DateOnly~ ExplicitDeleteDates
-      +void AddExplicitDeleteDate(DateOnly)
-      +Task ExecuteAsync(ILogStore, DateOnly)
-    }
+%% Relationships
+IAppLogger <|-- IAppLogger_T_
+SerilogAppLogger_T_ --|> IAppLogger_T_
+SerilogAppLogger_T_ ..> ILogSink : uses
 
-    interface ILogFilePathProvider {
-      +string GetLogFilePath(DateOnly)
-    }
+JsonFileLogStore --|> ILogStore
+JsonFileLogStore --|> ILogSink
+JsonFileLogStore ..> ILogFilePathProvider : uses
+DefaultLogFilePathProvider --|> ILogFilePathProvider
 
-    class SerilogAppLogger~T~ {
-    }
+SqliteLogStore --|> ILogStore
+SqliteLogStore --|> ILogSink
 
-    class DefaultLogMaintenance {
-    }
+DefaultLogMaintenance --|> ILogMaintenance
+DefaultLogMaintenance ..> ILogStore : calls DeleteLogsAsync
 
-    class JsonFileLogStore {
-    }
+LoggingServiceCollectionExtensions ..> IAppLogger : registers
+LoggingServiceCollectionExtensions ..> ILogMaintenance : registers
+JsonLoggingServiceCollectionExtensions ..> JsonFileLogStore : registers
+JsonLoggingServiceCollectionExtensions ..> DefaultLogFilePathProvider : registers
+SqliteLoggingServiceCollectionExtensions ..> SqliteLogStore : registers
 
-    class DefaultLogFilePathProvider {
-    }
+LogEntry "1" o-- "*" LogEntry : serializedProperties
 
-    class SqliteLogStore {
-    }
+%% Notes
+note for SerilogAppLogger_T_ "Wraps Serilog and optionally forwards LogEntry to ILogSink"
+note for JsonFileLogStore "Stores logs as JSON Lines (one entry per line)"
+note for SqliteLogStore "Stores logs in a SQLite table 'Logs'"
 
-    %% Relationships
-    IAppLogger <|.. IAppLogger~T~
-    IAppLogger <|-- SerilogAppLogger~T~
-
-    ILogSink <|.. JsonFileLogStore
-    ILogStore <|.. JsonFileLogStore
-
-    ILogSink <|.. SqliteLogStore
-    ILogStore <|.. SqliteLogStore
-
-    ILogMaintenance <|.. DefaultLogMaintenance
-    ILogFilePathProvider <|.. DefaultLogFilePathProvider
-
-    SerilogAppLogger~T~ ..> ILogSink : writes to
-    JsonFileLogStore o-- DefaultLogFilePathProvider : uses
-    DefaultLogMaintenance ..> ILogStore : deletes via
-    SqliteLogStore ..> ILogMaintenance : optionally used by
-
-    note for SerilogAppLogger~T~ "Depends on Serilog ILogger\nMaps LogLevel to Serilog"
-    note for JsonFileLogStore "File-per-day (jsonl)\nImplements storage and sink"
-    note for SqliteLogStore "Stores logs in SQLite table\nImplements storage and sink"
 ```
-
-說明：
-- 箭頭與標註代表：實作 (`<|--`)、介面實作 (`<|..`)、依賴 (`..>`)、組合 (`o--`)。
-- 若要在 VS Code 直接預覽，請安裝 "Markdown Preview Mermaid Support" 或使用 PlantUML / Mermaid 擴充。
-
-若要，我可以把同內容產生為 PlantUML (`.puml`) 或直接輸出 PNG/SVG 圖檔並加入 `docs/`。
