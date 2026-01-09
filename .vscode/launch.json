@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug single xUnit test",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/.dotnet/tools/dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}/Birdsoft.Infrastructure.sln",
+        "--no-build",
+        "--filter",
+        "FullyQualifiedName=${input:fullyQualifiedTestName}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false
+    }
+  ],
+  "inputs": [
+    {
+      "id": "fullyQualifiedTestName",
+      "type": "promptString",
+      "description": "Enter the fully qualified test name (Namespace.Class.Method)"
+    }
+  ]
+}
