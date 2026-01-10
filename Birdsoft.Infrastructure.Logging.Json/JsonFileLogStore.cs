@@ -119,11 +119,16 @@ public sealed class JsonFileLogStore : ILogStore, ILogSink
 
         using var reader = new StreamReader(stream);
 
-        while (!reader.EndOfStream)
+        while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+            if (line is null)
+            { 
+                break; 
+            }
+
             if (string.IsNullOrWhiteSpace(line))
             {
                 continue;
