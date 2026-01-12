@@ -11,6 +11,9 @@
 ## VS
 .vs/
 
+## Coverage / test artifacts
+artifacts/
+
 ## OS
 .DS_Store
 Thumbs.db
