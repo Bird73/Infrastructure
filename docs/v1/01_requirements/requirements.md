@@ -1,6 +1,6 @@
 # Birdsoft.Infrastructure.Logging — 需求規格
 
-> 版本：v1 | 狀態：Draft | 日期：2026-03-01
+> 版本：v1 | 狀態：Implemented | 日期：2026-03-02
 
 ## 1. 概述
 

@@ -130,7 +130,7 @@
 
 ### Solution 收尾
 
-- [ ] 建立 `Birdsoft.Infrastructure.sln`（含所有專案）
-- [ ] 建立 `Directory.Build.props`（共用屬性）
+- [ ] ~~建立 `Birdsoft.Infrastructure.sln`（含所有專案）~~ (REMOVED: 本 repo 以 `Birdsoft.Infrastructure.slnx` 為唯一 solution 入口，不提供 `.sln`)
+- [ ] ~~建立 `Directory.Build.props`（共用屬性）~~ (REMOVED: 本 repo 目前不採用集中 props 檔，維持各 csproj 明確設定)
 - [x] 全部專案編譯通過
 - [x] 全部測試通過（`dotnet test -c Release`）

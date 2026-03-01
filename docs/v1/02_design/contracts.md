@@ -1,6 +1,6 @@
 # Birdsoft.Infrastructure.Logging — 介面契約規格
 
-> 版本：v1 | 狀態：Draft | 日期：2026-03-01
+> 版本：v1 | 狀態：Implemented | 日期：2026-03-02
 
 本文件定義所有公開介面與模型的完整簽章，作為實作的 contracts-first 參考。
 
