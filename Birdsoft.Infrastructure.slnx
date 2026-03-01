@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Birdsoft.Infrastructure.Logging.Abstractions/Birdsoft.Infrastructure.Logging.Abstractions.csproj" />
+  <Project Path="Birdsoft.Infrastructure.Logging.Json/Birdsoft.Infrastructure.Logging.Json.csproj" />
+  <Project Path="Birdsoft.Infrastructure.Logging.Sqlite/Birdsoft.Infrastructure.Logging.Sqlite.csproj" />
+  <Project Path="Birdsoft.Infrastructure.Logging.Tests/Birdsoft.Infrastructure.Logging.Tests.csproj" />
+  <Project Path="Birdsoft.Infrastructure.Logging/Birdsoft.Infrastructure.Logging.csproj" />
+</Solution>
