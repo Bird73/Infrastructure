@@ -1,0 +1,63 @@
+# ===== .NET =====
+bin/
+obj/
+artifacts/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/
+project.lock.json
+project.fragment.lock.json
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+
+# Visual Studio
+.vs/
+*.rsuser
+*.sln.iml
+
+# Rider
+.idea/
+
+# Test results
+**/TestResults/
+coverage/
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# ===== 本 repo 專屬排除 =====
+
+# Copilot / Agent 工具設定（不進版控）
+.agents/
+.github/
+AGENTS.md
+
+# 真實設定檔（不進版控）
+.env
+.env.*
+!.env.example
+!.env.*.example
+config.local.*
+appsettings.*.json
+!appsettings.json
+
+# SQLite 測試用 DB
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
