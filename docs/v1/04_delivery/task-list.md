@@ -118,11 +118,11 @@
 
 - [x] `MicrosoftLoggerToStoreTests`（ILogger → sink → store → LogQuery）（REQ-TEST-01）
 - [x] `LoggingProjectSmokeTests`（DI 註冊完整性）（REQ-TEST-01）
-- [ ] Redaction 端到端驗證（寫入 → 讀出確認已遮蔽）（REQ-TEST-01）
+- [x] Redaction 端到端驗證（寫入 → 讀出確認已遮蔽）（REQ-TEST-01）
 
 ### 文件收尾
 
-- [ ] 更新各專案 `README.md`
+- [x] 更新各專案 `README.md`
 - [x] 填寫 `traceability.md`
 - [x] 填寫 `acceptance-checklist.md`
 - [x] 填寫 `verification-log.md`

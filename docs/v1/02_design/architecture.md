@@ -115,7 +115,7 @@ public sealed class LogQuery
 設計：
   - 靜態類別，提供 Redact(string?) 方法
   - 內部維護一組預設 Regex pattern
-  - 提供 AddPattern(Regex) 靜態方法以擴充
+  - 提供 AddPattern(string pattern) 靜態方法以擴充
   - 提供 ResetToDefaults() 靜態方法，將 pattern 清單恢復為預設狀態（專供測試使用）
   - 掃描 RenderedMessage、ExceptionDetail、Properties values
   - RedactProperties 同時執行型別正規化：
@@ -143,9 +143,10 @@ public sealed class LogQuery
   - args: object?[]          (如 [500, "/api/users"])
 
 輸出：
-  - renderedMessage: string  (如 "Error 500 at /api/users")
-  - properties: Dictionary<string, object?>
-      { "Code": 500, "Endpoint": "/api/users" }
+  - MessageTemplateParseResult
+      - RenderedMessage: string  (如 "Error 500 at /api/users")
+      - Properties: IReadOnlyDictionary<string, object?>
+          { "Code": 500, "Endpoint": "/api/users" }
 
 規則：
   - 佔位符格式：{Name} 或 {Name:format}
@@ -161,9 +162,9 @@ public sealed class LogQuery
 
 方法：
   - ToSerilogLevel(LogLevel) → LogEventLevel
-  - FromSerilogLevel(LogEventLevel) → LogLevel
+  - ToAppLevel(LogEventLevel) → LogLevel
   - ToMicrosoftLevel(LogLevel) → MS.LogLevel
-  - FromMicrosoftLevel(MS.LogLevel) → LogLevel
+  - ToAppLevel(MS.LogLevel) → LogLevel
 
 特殊處理：
   - LogLevel.None → MS.LogLevel.None（不寫入 Serilog）
@@ -173,18 +174,17 @@ public sealed class LogQuery
 ### 3.7 SerilogAppLogger\<T\>（Core）
 
 ```
-建構子：(ILogger serilogLogger, ILogSink? logSink = null)
+建構子：(ILogger serilogLogger, ILogSink logSink)
 
 Log() 流程：
   1. 呼叫 Serilog 寫入
-  2. 若 logSink 不為 null：
-     a. 使用 MessageTemplateParser 解析 template + args
-     b. 建構 LogEntry（Timestamp = UtcNow, ExceptionDetail = exception?.ToString()）
-     c. 若 Activity.Current 存在，將 trace_id、span_id 寫入 Properties
-     d. Properties 值型別正規化（不支援的型別 → ToString()）
-     e. LogEntryRedactor 遮蔽
-     f. try { _logSink.WriteAsync(entry).GetAwaiter().GetResult(); }
-        catch { /* 靜默 */ }
+    2. 使用 MessageTemplateParser 解析 template + args
+    3. 建構 LogEntry（Timestamp = UtcNow, ExceptionDetail = exception?.ToString()）
+    4. 若 Activity.Current 存在，將 trace_id、span_id 寫入 Properties
+    5. Properties 值型別正規化（不支援的型別 → ToString()）
+    6. LogEntryRedactor 遮蔽
+    7. try { _logSink.WriteAsync(entry).GetAwaiter().GetResult(); }
+      catch { /* 靜默 */ }
 ```
 
 ### 3.8 LogSinkLoggerProvider（Core）
@@ -199,7 +199,7 @@ LogSinkLogger.Log<TState>() 流程：
      b. Properties = 空
   2. formatter(state, exception) → RenderedMessage
   3. 建構 LogEntry（Timestamp = UtcNow）
-  4. Level 映射使用 LevelMapper.FromMicrosoftLevel()
+  4. Level 映射使用 LevelMapper.ToAppLevel()
   5. 透過 ISupportExternalScope 取得 scope 資料，合併至 Properties
   6. 若 Activity.Current 存在，將 trace_id、span_id 寫入 Properties
   7. Properties 值型別正規化
@@ -277,9 +277,9 @@ CREATE INDEX IF NOT EXISTS IX_Logs_Level ON Logs(Level);
 ### 4.1 AddBirdsoftLoggingCore()
 
 ```
-services.TryAddSingleton<Serilog.ILogger>(_ => Log.Logger);
+services.TryAddSingleton<Serilog.ILogger>(_ => new LoggerConfiguration().MinimumLevel.Verbose().CreateLogger());
 services.TryAddSingleton<ILogMaintenance, DefaultLogMaintenance>();
-services.TryAddTransient(typeof(IAppLogger<>), typeof(SerilogAppLogger<>));
+services.TryAddSingleton(typeof(IAppLogger<>), typeof(SerilogAppLogger<>));
 ```
 
 ### 4.2 AddBirdsoftJsonLogging(configure)
@@ -308,16 +308,14 @@ services.TryAddSingleton<ILogSink>(sp => sp.GetRequiredService<SqliteLogStore>()
 ### 4.4 AddAppLogging(clearExistingProviders, configure?)
 
 ```
-services.AddBirdsoftLoggingCore();
-services.AddLogging(builder => {
-    if (clearExistingProviders)
-    {
-        builder.ClearProviders();
-    }
-    builder.Services.TryAddEnumerable(
-        ServiceDescriptor.Singleton<ILoggerProvider, LogSinkLoggerProvider>());
-    configure?.Invoke(builder);
-});
+builder.AddAppLogging(clearExistingProviders, configure);
+if (clearExistingProviders)
+{
+  builder.ClearProviders();
+}
+builder.Services.TryAddEnumerable(
+  ServiceDescriptor.Singleton<ILoggerProvider, LogSinkLoggerProvider>());
+configure?.Invoke(builder);
 ```
 
 ---

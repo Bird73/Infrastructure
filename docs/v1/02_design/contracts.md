@@ -164,9 +164,9 @@ namespace Birdsoft.Infrastructure.Logging;
 public static class LevelMapper
 {
     public static LogEventLevel ToSerilogLevel(LogLevel level);
-    public static LogLevel FromSerilogLevel(LogEventLevel level);
+    public static LogLevel ToAppLevel(LogEventLevel level);
     public static Microsoft.Extensions.Logging.LogLevel ToMicrosoftLevel(LogLevel level);
-    public static LogLevel FromMicrosoftLevel(Microsoft.Extensions.Logging.LogLevel level);
+    public static LogLevel ToAppLevel(Microsoft.Extensions.Logging.LogLevel level);
 }
 ```
 
@@ -177,9 +177,12 @@ namespace Birdsoft.Infrastructure.Logging;
 
 public static class MessageTemplateParser
 {
-    public static (string RenderedMessage, Dictionary<string, object?> Properties)
-        Parse(string messageTemplate, object?[] args);
+    public static MessageTemplateParseResult Parse(string messageTemplate, params object?[] args);
 }
+
+public sealed record MessageTemplateParseResult(
+    string RenderedMessage,
+    IReadOnlyDictionary<string, object?> Properties);
 ```
 
 ### 2.4 LogEntryRedactor（靜態）
@@ -194,7 +197,7 @@ public static class LogEntryRedactor
     public static IReadOnlyDictionary<string, object?> RedactProperties(
         IReadOnlyDictionary<string, object?> properties);
 
-    public static void AddPattern(Regex pattern, string replacement = "[REDACTED]");
+    public static void AddPattern(string pattern);
 
     /// <summary>
     /// 將 pattern 清單恢復為預設狀態。專供測試使用，避免測試間靜態狀態汙染。
@@ -220,8 +223,8 @@ public static class LoggingServiceCollectionExtensions
     /// <param name="clearExistingProviders">
     /// 預設 false。設為 true 時會先清除既有 provider（如 Console、Debug）。
     /// </param>
-    public static IServiceCollection AddAppLogging(
-        this IServiceCollection services,
+    public static ILoggingBuilder AddAppLogging(
+        this ILoggingBuilder builder,
         bool clearExistingProviders = false,
         Action<ILoggingBuilder>? configure = null);
 }
@@ -238,7 +241,7 @@ namespace Birdsoft.Infrastructure.Logging.Json;
 
 public interface ILogFilePathProvider
 {
-    string GetLogFilePath(DateOnly date);
+    string GetPath(DateOnly date);
 }
 ```
 
@@ -262,7 +265,8 @@ public static class JsonLoggingServiceCollectionExtensions
 {
     public static IServiceCollection AddBirdsoftJsonLogging(
         this IServiceCollection services,
-        Action<JsonLoggingOptions> configure);
+    Action<JsonLoggingOptions>? configureJson = null,
+    Action<LoggingOptions>? configureLogging = null);
 }
 ```
 
@@ -290,6 +294,7 @@ public static class SqliteLoggingServiceCollectionExtensions
 {
     public static IServiceCollection AddBirdsoftSqliteLogging(
         this IServiceCollection services,
-        Action<SqliteLoggingOptions> configure);
+    Action<SqliteLoggingOptions>? configureSqlite = null,
+    Action<LoggingOptions>? configureLogging = null);
 }
 ```

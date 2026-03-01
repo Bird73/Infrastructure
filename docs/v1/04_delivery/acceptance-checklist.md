@@ -1,6 +1,6 @@
 # Birdsoft.Infrastructure.Logging — 驗收檢查清單
 
-> 版本：v1 | 狀態：In Progress | 日期：2026-03-02
+> 版本：v1 | 狀態：Completed | 日期：2026-03-02
 
 ## M1：Abstractions + Core 重構
 
@@ -48,10 +48,10 @@
 |---|---------|--------|------|
 | 31 | ILogger → JsonSink → Store → LogQuery 端到端通過 | REQ-TEST-01 | [x] |
 | 32 | DI 煙霧測試通過 | REQ-TEST-01 | [x] |
-| 33 | Redaction 端到端：寫入含敏感資訊 → 讀出確認 [REDACTED] | REQ-TEST-01 | [ ] |
+| 33 | Redaction 端到端：寫入含敏感資訊 → 讀出確認 [REDACTED] | REQ-TEST-01 | [x] |
 | 34 | 所有 csproj 版本為 0.1.0 | — | [x] |
 | 35 | `dotnet build -c Release` 零警告 | — | [x] |
 | 36 | `dotnet test -c Release` 全部通過 | — | [x] |
-| 37 | README.md 更新反映新 API | — | [ ] |
+| 37 | README.md 更新反映新 API | — | [x] |
 | 38 | traceability.md 完整 | — | [x] |
 | 39 | verification-log.md 已填寫 | — | [x] |

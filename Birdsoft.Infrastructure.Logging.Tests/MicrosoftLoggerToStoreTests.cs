@@ -7,7 +7,7 @@ namespace Birdsoft.Infrastructure.Logging.Tests;
 public sealed class MicrosoftLoggerToStoreTests
 {
     [Fact]
-    public async Task EndToEnd_ILoggerToStore_ShouldPersistAndQuery()
+    public async Task EndToEnd_ILoggerToStore_ShouldPersistAndRedactAndQuery()
     {
         var root = Path.Combine(Path.GetTempPath(), "birdsoft-e2e", Guid.NewGuid().ToString("N"));
         var services = new ServiceCollection();
@@ -20,15 +20,18 @@ public sealed class MicrosoftLoggerToStoreTests
         var logger = provider.GetRequiredService<ILogger<MicrosoftLoggerToStoreTests>>();
         var store = provider.GetRequiredService<Abstractions.ILogStore>();
 
-        logger.LogError("E2E {Code}", 501);
+        logger.LogError("E2E token={Token}", "access_token=abc123");
 
         var date = DateOnly.FromDateTime(DateTime.UtcNow);
         var entries = new List<Abstractions.LogEntry>();
-        await foreach (var entry in store.GetLogsAsync(new Abstractions.LogQuery { Date = date }))
+        await foreach (var logEntry in store.GetLogsAsync(new Abstractions.LogQuery { Date = date }))
         {
-            entries.Add(entry);
+            entries.Add(logEntry);
         }
 
-        Assert.NotEmpty(entries);
+        var entry = Assert.Single(entries);
+        Assert.Contains("[REDACTED]", entry.RenderedMessage);
+        Assert.DoesNotContain("abc123", entry.RenderedMessage);
+        Assert.Contains("[REDACTED]", entry.Properties["Token"]?.ToString());
     }
 }

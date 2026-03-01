@@ -39,19 +39,19 @@ public sealed class JsonFileLogStore : ILogStore, ILogSink, IDisposable
         }
     }
 
-    public async Task<IReadOnlyList<DateOnly>> GetLogDatesAsync(CancellationToken ct = default)
+    public Task<IReadOnlyList<DateOnly>> GetLogDatesAsync(CancellationToken ct = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         if (_pathProvider is not DefaultLogFilePathProvider defaultProvider)
         {
-            return [];
+            return Task.FromResult<IReadOnlyList<DateOnly>>([]);
         }
 
         var root = Path.GetDirectoryName(defaultProvider.GetPath(DateOnly.FromDateTime(DateTime.UtcNow)))!;
         if (!Directory.Exists(root))
         {
-            return [];
+            return Task.FromResult<IReadOnlyList<DateOnly>>([]);
         }
 
         var dates = new List<DateOnly>();
@@ -65,7 +65,7 @@ public sealed class JsonFileLogStore : ILogStore, ILogSink, IDisposable
             }
         }
 
-        return dates.OrderBy(x => x).ToArray();
+        return Task.FromResult<IReadOnlyList<DateOnly>>(dates.OrderBy(x => x).ToArray());
     }
 
     public async IAsyncEnumerable<LogEntry> GetLogsAsync(LogQuery query, [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
