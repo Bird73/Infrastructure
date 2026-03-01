@@ -1,6 +1,6 @@
 # Birdsoft.Infrastructure.Logging — 追溯矩陣
 
-> 版本：v1 | 狀態：Draft | 日期：2026-03-01
+> 版本：v1 | 狀態：Implemented | 日期：2026-03-02
 
 ## REQ → 設計 → 測試 → 實作追溯
 
